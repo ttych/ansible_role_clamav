@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# daemontools runscript for the freshclam daemon.
+
+CLAMUSER=clamav
+CLAMCONF=/etc/clamav.conf
+
+UPDATENO=4
+
+FRESHCLAM="${FRESHCLAM:-freshclam}"
+FGHACK="${FGHACK:-fghack}"
+
+exec $FGHACK envuidgid $CLAMUSER $FRESHCLAM --daemon \
+     --checks=$UPDATENO \
+     --stdout \
+     --log-verbose \
+     --log=/var/log/clam-update.log \
+     --http-proxy=localhost:8080 \
+     --daemon-notify=$CLAMCONF

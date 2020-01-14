@@ -1,2 +1,9 @@
 ---
-# defaults file for ansible_role_clamav
+want_clamav: true
+
+clamav_default_services:
+  - clamav-freshclam
+  - clamav-daemon
+
+clamav_packages:
+  - clamav-daemon

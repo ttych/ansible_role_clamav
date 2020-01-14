@@ -1,0 +1,18 @@
+---
+
+- name: configure daemontools service
+  block:
+    - debug:
+        msg: "daemontools"
+  when: has_daemontools is defined and has_daemontools
+
+- name: configure standard service
+  block:
+    - name: enable default clamav service
+      service:
+        name: '{{ item }}'
+        enabled: yes
+        state: started
+      with_items: "{{ clamav_default_services }}"
+  when: has_daemontools is not defined or not has_daemontools
+

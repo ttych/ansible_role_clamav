@@ -1,0 +1,16 @@
+---
+- name: install clamav packages
+  package:
+    name: '{{ item }}'
+    state: 'present'
+  with_flattened:
+    - '{{ clamav_packages }}'
+  register: install
+
+# - name: disable default clamav service
+#   service:
+#     name: '{{ item }}'
+#     enabled: no
+#     state: stopped
+#   with_items: "{{ clamav_default_services }}"
+#   when: install.changed

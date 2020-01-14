@@ -1,2 +1,13 @@
 ---
-# tasks file for ansible_role_clamav
+- block:
+    - include_tasks: context.yml
+
+    - include_tasks: install.yml
+
+    - include_tasks: configure.yml
+
+  when: want_clamav
+
+- name: set has_clamav
+  set_fact:
+    has_clamav: "{{ want_clamav }}"
