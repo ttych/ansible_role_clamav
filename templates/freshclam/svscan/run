@@ -1,0 +1,16 @@
+#!/bin/sh
+
+SCRIPT_PATH=$(cd "${1%/*}"; echo $PWD)
+
+CONF="{{ freshclam_conf }}"
+DATADIR="{{ clamav_db_dir }}"
+
+exec 2>&1
+exec fghack envuidgid {{ clamav_user }} freshclam \
+     --daemon \
+     --checks=1 \
+     --quiet \
+     --config-file "$CONF" \
+     --datadir="$DATADIR" \
+     --stdout
+     # --daemon-notify=$CLAMCONF

@@ -2,8 +2,39 @@
 
 - name: configure daemontools service
   block:
-    - debug:
-        msg: "daemontools"
+    - name: set clamav services directories
+      file:
+        path: "{{ item.path }}"
+        owner: "{{ item.owner }}"
+        group: "{{ item.group }}"
+        mode: "{{ item.mode }}"
+        state: directory
+      loop:
+        - { path: "{{ clamav_service_dir }}", owner: root, group: "{{ root_group }}", mode: "0755" }
+        - { path: "{{ clamav_db_dir }}", owner: clamav, group: "{{ root_group }}", mode: "0755" }
+        - { path: "{{ freshclam_service_dir }}", owner: root, group: "{{ root_group }}", mode: "0755" }
+        - { path: "{{ freshclam_log_dir }}", owner: clamav, group: "{{ root_group }}", mode: "0755" }
+        - { path: "{{ freshclam_service_dir }}/svscan", owner: root, group: "{{ root_group }}", mode: "0755" }
+        - { path: "{{ freshclam_service_dir }}/svscan/log", owner: root, group: "{{ root_group }}", mode: "0755" }
+
+    - name: set freshclam configuration file
+      template:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        owner: root
+        group: "{{ root_group }}"
+        mode: "{{ item.mode }}"
+      with_items:
+        - { src: freshclam/freshclam.conf, dest: "{{ freshclam_conf }}", mode: "0644" }
+        - { src: freshclam/svscan/run, dest: "{{ freshclam_service_dir }}/svscan/run", mode: "0755" }
+        - { src: freshclam/svscan/log/run, dest: "{{ freshclam_service_dir }}/svscan/log/run", mode: "0755" }
+
+    - name: link svscan
+      file:
+        src: "{{ freshclam_service_dir }}/svscan"
+        dest: "{{ daemontools_svscan_dir }}/freshclam"
+        state: link
+
   when: has_daemontools is defined and has_daemontools
 
 - name: configure standard service

@@ -7,3 +7,14 @@ clamav_default_services:
 
 clamav_packages:
   - clamav-daemon
+
+clamav_user: clamav
+
+clamav_service_dir: /services/clamav
+clamav_db_dir: "{{ clamav_service_dir }}/db"
+freshclam_service_dir: "{{ clamav_service_dir }}/freshclam"
+freshclam_conf: "{{ freshclam_service_dir }}/freshclam.conf"
+freshclam_log_dir: "{{ freshclam_service_dir }}/log"
+freshclam_log_file: "{{ freshclam_service_dir }}/log/freshclam.log"
+
+root_group: root

@@ -1,3 +1,5 @@
 ---
 clamav_packages:
   - clamav
+
+root_group: wheel
