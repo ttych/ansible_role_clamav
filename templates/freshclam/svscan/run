@@ -8,9 +8,9 @@ DATADIR="{{ clamav_db_dir }}"
 exec 2>&1
 exec fghack envuidgid {{ clamav_user }} freshclam \
      --daemon \
-     --checks=1 \
-     --quiet \
      --config-file "$CONF" \
      --datadir="$DATADIR" \
+     --checks=4 \
+     --quiet \
      --stdout
      # --daemon-notify=$CLAMCONF
