@@ -16,5 +16,6 @@ freshclam_service_dir: "{{ clamav_service_dir }}/freshclam"
 freshclam_conf: "{{ freshclam_service_dir }}/freshclam.conf"
 freshclam_log_dir: "{{ freshclam_service_dir }}/log"
 freshclam_log_file: "{{ freshclam_service_dir }}/log/freshclam.log"
+freshclam_run_dir: "{{ freshclam_service_dir }}/run"
 
 root_group: root
