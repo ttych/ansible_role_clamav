@@ -3,3 +3,7 @@ clamav_packages:
   - clamav
 
 root_group: wheel
+
+freshclam_conf: /usr/local/etc/freshclam.conf
+freshclam_log_file: /var/log/clamav/freshclam.log
+freshclam_pid_file: /var/run/clamav/freshclam.pid

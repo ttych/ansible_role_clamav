@@ -12,5 +12,5 @@
 #     name: '{{ item }}'
 #     enabled: no
 #     state: stopped
-#   with_items: "{{ clamav_default_services }}"
+#   with_items: "{{ clamav_services }}"
 #   when: install.changed

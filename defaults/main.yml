@@ -1,21 +1,16 @@
 ---
 want_clamav: true
 
-clamav_default_services:
+clamav_services:
   - clamav-freshclam
-  - clamav-daemon
 
 clamav_packages:
   - clamav-daemon
 
 clamav_user: clamav
 
-clamav_service_dir: /services/clamav
-clamav_db_dir: "{{ clamav_service_dir }}/db"
-freshclam_service_dir: "{{ clamav_service_dir }}/freshclam"
-freshclam_conf: "{{ freshclam_service_dir }}/freshclam.conf"
-freshclam_log_dir: "{{ freshclam_service_dir }}/log"
-freshclam_log_file: "{{ freshclam_service_dir }}/log/freshclam.log"
-freshclam_run_dir: "{{ freshclam_service_dir }}/run"
+freshclam_conf: /etc/freshclam.conf
+freshclam_log_file: /var/log/clamav/freshclam.log
+freshclam_pid_file: /var/run/clamav/freshclam.pid
 
 root_group: root
