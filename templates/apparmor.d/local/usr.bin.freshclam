@@ -1,0 +1,7 @@
+/usr/bin/freshclam flags=(attach_disconnected) {
+  {{ freshclam_conf }} r,
+  {{ clamav_db_dir }}/* rw,
+  {{ freshclam_pid_file }} w,
+  owner  {{ clamav_db_dir }}/** rw,
+  owner {{ freshclam_log_file }} rwk,
+}

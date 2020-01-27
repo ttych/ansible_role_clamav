@@ -18,3 +18,5 @@ root_group: root
 services_dir: /services
 daemontools_dir: "{{ services_dir }}/svscan"
 daemontools_svscan_dir: "{{ daemontools_dir }}/supervised"
+
+freshclam_local_apparmor_file: /etc/apparmor.d/local/usr.bin.freshclam
