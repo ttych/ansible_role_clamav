@@ -13,6 +13,12 @@
       loop: "{{ clamav_services }}"
       when: ansible_distribution == 'FreeBSD'
 
+    - name: disable Linux service
+      service:
+        name: "{{ item }}"
+        enabled: false
+      loop: "{{ clamav_services }}"
+
     - name: set clamav services directories
       file:
         path: "{{ item.path }}"
@@ -66,10 +72,16 @@
 
 - name: start standard service
   block:
-    - name: setup standard service
+    - name: enable standard FreeBSD service
       include: sysrc.yml key="{{ item | regex_replace('-','_')  }}_enable" value="YES"
       loop: "{{ clamav_services }}"
       when: ansible_distribution == 'FreeBSD'
+
+    - name: enable standard Linux service
+      service:
+        name: "{{ item }}"
+        enabled: true
+      loop: "{{ clamav_services }}"
 
     - service:
         name: '{{ item }}'

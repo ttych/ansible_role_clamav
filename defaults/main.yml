@@ -14,3 +14,7 @@ freshclam_log_file: /var/log/clamav/freshclam.log
 freshclam_pid_file: /var/run/clamav/freshclam.pid
 
 root_group: root
+
+services_dir: /services
+daemontools_dir: "{{ services_dir }}/svscan"
+daemontools_svscan_dir: "{{ daemontools_dir }}/supervised"
