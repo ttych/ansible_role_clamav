@@ -96,10 +96,10 @@
         name: "{{ item }}"
         enabled: true
       loop: "{{ clamav_services }}"
+      when: ansible_system == 'Linux'
 
     - service:
         name: '{{ item }}'
-        enabled: yes
         state: started
       loop: "{{ clamav_services }}"
       register: t_freshclam_service
