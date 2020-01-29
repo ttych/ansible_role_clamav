@@ -11,10 +11,10 @@ freshclam_pid_file: "{{ freshclam_run_dir }}/freshclam.pid"
 
 clamav_directories:
   - { path: "{{ clamav_service_dir }}", owner: root, group: "{{ root_group }}", mode: "0755" }
-  - { path: "{{ clamav_db_dir }}", owner: clamav, group: "{{ root_group }}", mode: "0755" }
+  - { path: "{{ clamav_db_dir }}", owner: "{{ clamav_user }}", group: "{{ root_group }}", mode: "0755" }
   - { path: "{{ freshclam_service_dir }}", owner: root, group: "{{ root_group }}", mode: "0755" }
-  - { path: "{{ freshclam_log_dir }}", owner: clamav, group: "{{ root_group }}", mode: "0755" }
-  - { path: "{{ freshclam_run_dir }}", owner: clamav, group: "{{ root_group }}", mode: "0755" }
+  - { path: "{{ freshclam_log_dir }}", owner: "{{ clamav_user }}", group: "{{ root_group }}", mode: "0755" }
+  - { path: "{{ freshclam_run_dir }}", owner: "{{ clamav_user }}", group: "{{ root_group }}", mode: "0755" }
   - { path: "{{ freshclam_service_dir }}/svscan", owner: root, group: "{{ root_group }}", mode: "0755" }
   - { path: "{{ freshclam_service_dir }}/svscan/log", owner: root, group: "{{ root_group }}", mode: "0755" }
 
