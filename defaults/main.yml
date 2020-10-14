@@ -15,8 +15,8 @@ freshclam_pid_file: /var/run/clamav/freshclam.pid
 
 root_group: root
 
-services_dir: /services
-daemontools_dir: "{{ services_dir }}/svscan"
+service_dir: /service
+daemontools_dir: "{{ service_dir }}/svscan"
 daemontools_svscan_dir: "{{ daemontools_dir }}/supervised"
 
 freshclam_local_apparmor_file: /etc/apparmor.d/local/usr.bin.freshclam

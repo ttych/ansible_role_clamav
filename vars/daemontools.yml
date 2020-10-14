@@ -1,6 +1,6 @@
 ---
 
-clamav_service_dir: "{{ services_dir }}/clamav"
+clamav_service_dir: "{{ service_dir }}/clamav"
 clamav_db_dir: "{{ clamav_service_dir }}/db"
 freshclam_service_dir: "{{ clamav_service_dir }}/freshclam"
 freshclam_conf: "{{ freshclam_service_dir }}/freshclam.conf"
@@ -18,4 +18,4 @@ clamav_directories:
   - { path: "{{ freshclam_service_dir }}/svscan", owner: root, group: "{{ root_group }}", mode: "0755" }
   - { path: "{{ freshclam_service_dir }}/svscan/log", owner: root, group: "{{ root_group }}", mode: "0755" }
 
-newsyslog_conf_dir: "{{ services_newsyslog_dir }}"
+newsyslog_conf_dir: "{{ service_newsyslog_dir }}"
