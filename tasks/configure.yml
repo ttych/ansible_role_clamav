@@ -28,6 +28,7 @@
         state: directory
       loop: "{{ clamav_directories }}"
 
+
     - name: check if apparmor is present
       stat:
         path: "{{ freshclam_local_apparmor_file }}"
@@ -40,7 +41,15 @@
         owner: root
         group: "{{ root_group }}"
         mode: "0644"
-      when: t_stat_freshclam_apparmor.stat.exists == True
+      register: t_freshclam_apparmor_local_conf
+      when: t_stat_freshclam_apparmor.stat.exists
+
+    - name: reload apparmor
+      service:
+        name: apparmor
+        state: restarted
+      when: t_freshclam_apparmor_local_conf.changed
+
 
     - name: set daemontools service file
       template:
