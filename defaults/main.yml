@@ -1,5 +1,6 @@
 ---
 want_clamav: true
+want_clamav_service: true
 
 clamav_services:
   - clamav-freshclam

@@ -28,7 +28,6 @@
         state: directory
       loop: "{{ clamav_directories }}"
 
-
     - name: check if apparmor is present
       stat:
         path: "{{ freshclam_local_apparmor_file }}"
@@ -67,6 +66,7 @@
         src: "{{ freshclam_service_dir }}/svscan"
         dest: "{{ daemontools_svscan_dir }}/freshclam"
         state: link
+      when: want_clamav_service
 
   when: has_daemontools is defined and has_daemontools
 
@@ -120,4 +120,6 @@
       loop: "{{ clamav_services }}"
       when: t_freshclam_conf.changed and not t_freshclam_service.changed
 
-  when: has_daemontools is not defined or not has_daemontools
+  when:
+    - has_daemontools is not defined or not has_daemontools
+    - want_clamav_service
