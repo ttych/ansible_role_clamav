@@ -1,77 +1,12 @@
 ---
 
-- name: configure daemontools service
-  block:
-    - name: stop system service
-      service:
-        name: "{{ item }}"
-        state: stopped
-      loop: "{{ clamav_services }}"
-
-    - name: disable FreeBSD service
-      include: sysrc.yml key="{{ item | regex_replace('-','_')  }}_enable" value="NO"
-      loop: "{{ clamav_services }}"
-      when: ansible_distribution == 'FreeBSD'
-
-    - name: disable Linux service
-      service:
-        name: "{{ item }}"
-        enabled: false
-      loop: "{{ clamav_services }}"
-
-    - name: set clamav services directories
-      file:
-        path: "{{ item.path }}"
-        owner: "{{ item.owner }}"
-        group: "{{ item.group }}"
-        mode: "{{ item.mode }}"
-        state: directory
-      loop: "{{ clamav_directories }}"
-
-    - name: check if apparmor is present
-      stat:
-        path: "{{ freshclam_local_apparmor_file }}"
-      register: t_stat_freshclam_apparmor
-
-    - name: update local apparmor conf
-      template:
-        src: apparmor.d/local/usr.bin.freshclam
-        dest: "{{ freshclam_local_apparmor_file }}"
-        owner: root
-        group: "{{ root_group }}"
-        mode: "0644"
-      register: t_freshclam_apparmor_local_conf
-      when: t_stat_freshclam_apparmor.stat.exists
-
-    - name: reload apparmor
-      service:
-        name: apparmor
-        state: restarted
-      when: t_freshclam_apparmor_local_conf.changed
+- name: clamav workspace
+  include_tasks: workspace.yml
+  vars:
+    workspace_items: "{{ clamav_workspace_items }}"
 
 
-    - name: set daemontools service file
-      template:
-        src: "{{ item.src }}"
-        dest: "{{ item.dest }}"
-        owner: root
-        group: "{{ root_group }}"
-        mode: "{{ item.mode }}"
-      with_items:
-        - { src: freshclam/svscan/run, dest: "{{ freshclam_service_dir }}/svscan/run", mode: "0755" }
-        - { src: freshclam/svscan/log/run, dest: "{{ freshclam_service_dir }}/svscan/log/run", mode: "0755" }
-
-    - name: link svscan
-      file:
-        src: "{{ freshclam_service_dir }}/svscan"
-        dest: "{{ daemontools_svscan_dir }}/freshclam"
-        state: link
-      when: want_clamav_service
-
-  when: has_daemontools is defined and has_daemontools
-
-
-- name: deploy freshclam.conf
+- name: deploy conf
   template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
@@ -79,47 +14,48 @@
     group: "{{ root_group }}"
     mode: "{{ item.mode }}"
   loop:
-    - { src: freshclam/freshclam.conf, dest: "{{ freshclam_conf }}", mode: "0644" }
-  register: t_freshclam_conf
+    - src: clamd/clamd.conf
+      dest: "{{ clamav_clamd_conf }}"
+      owner: root
+      group: "{{ root_group }}"
+      mode: "0644"
+    - src: freshclam/freshclam.conf
+      dest: "{{ clamav_freshclam_conf }}"
+      owner: root
+      group: "{{ root_group }}"
+      mode: "0644"
+  register: t_clamav_conf
 
 
-- name: setup FreeBSD newsyslog
+- name: check clamav db
+  stat:
+    path: "{{ clamav_clamav_db_dir }}/main.cvd"
+  register: t_clamav_stat_db_daily
+
+- name: init clamav db
+  command:
+    cmd: freshclam
+  when: not t_clamav_stat_db_daily.stat.exists
+
+
+- name: deploy clamscanner
   template:
-    src: newsyslog.conf.d/freshclam.conf
-    dest: "{{ newsyslog_conf_dir }}/freshclam.conf"
+    src: scripts/clamdscanner
+    dest: "{{ clamav_clamdscanner_clam_bin }}"
     owner: root
     group: "{{ root_group }}"
-    mode: '0644'
-  when: ansible_distribution == 'FreeBSD'
+    mode: "0755"
+  vars:
+    clamav_clamdscanner_cmd: clamscan
+    clamav_clamdscanner_opt1: "--recursive"
 
-
-- name: start standard service
-  block:
-    - name: enable standard FreeBSD service
-      include: sysrc.yml key="{{ item | regex_replace('-','_')  }}_enable" value="YES"
-      loop: "{{ clamav_services }}"
-      when: ansible_distribution == 'FreeBSD'
-
-    - name: enable standard Linux service
-      service:
-        name: "{{ item }}"
-        enabled: true
-      loop: "{{ clamav_services }}"
-      when: ansible_system == 'Linux'
-
-    - service:
-        name: '{{ item }}'
-        state: started
-      loop: "{{ clamav_services }}"
-      register: t_freshclam_service
-
-    - service:
-        name: '{{ item }}'
-        enabled: yes
-        state: restarted
-      loop: "{{ clamav_services }}"
-      when: t_freshclam_conf.changed and not t_freshclam_service.changed
-
-  when:
-    - has_daemontools is not defined or not has_daemontools
-    - want_clamav_service
+- name: deploy clamdscanner
+  template:
+    src: scripts/clamdscanner
+    dest: "{{ clamav_clamdscanner_clamd_bin }}"
+    owner: root
+    group: "{{ root_group }}"
+    mode: "0755"
+  vars:
+    clamav_clamdscanner_cmd: clamdscan
+    clamav_clamdscanner_opt1: "--fdpass"

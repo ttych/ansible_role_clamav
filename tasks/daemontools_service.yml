@@ -1,0 +1,77 @@
+---
+
+- name: daemontools service
+  block:
+    - name: stop system service
+      service:
+        name: "{{ item }}"
+        state: stopped
+      loop: "{{ clamav_services }}"
+
+    - name: disable FreeBSD service
+      include_tasks: sysrc.yml
+      vars:
+        key: "{{ item | regex_replace('-','_')  }}_enable"
+        value: "NO"
+      loop: "{{ clamav_services }}"
+      when: ansible_distribution == 'FreeBSD'
+
+    - name: disable Linux service
+      service:
+        name: "{{ item }}"
+        enabled: false
+      loop: "{{ clamav_services }}"
+
+
+    - name: set clamav services directories
+      file:
+        path: "{{ item.path }}"
+        owner: "{{ item.owner }}"
+        group: "{{ item.group }}"
+        mode: "{{ item.mode }}"
+        state: directory
+      loop: "{{ clamav_directories }}"
+
+    - name: check if apparmor is present
+      stat:
+        path: "{{ freshclam_local_apparmor_file }}"
+      register: t_stat_freshclam_apparmor
+
+    - name: update local apparmor conf
+      template:
+        src: apparmor.d/local/usr.bin.freshclam
+        dest: "{{ freshclam_local_apparmor_file }}"
+        owner: root
+        group: "{{ root_group }}"
+        mode: "0644"
+      register: t_freshclam_apparmor_local_conf
+      when: t_stat_freshclam_apparmor.stat.exists
+
+    - name: reload apparmor
+      service:
+        name: apparmor
+        state: restarted
+      when: t_freshclam_apparmor_local_conf.changed
+
+
+    - name: set daemontools service file
+      template:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        owner: root
+        group: "{{ root_group }}"
+        mode: "{{ item.mode }}"
+      with_items:
+        - { src: freshclam/svscan/run, dest: "{{ freshclam_service_dir }}/svscan/run", mode: "0755" }
+        - { src: freshclam/svscan/log/run, dest: "{{ freshclam_service_dir }}/svscan/log/run", mode: "0755" }
+
+    - name: link svscan
+      file:
+        src: "{{ freshclam_service_dir }}/svscan"
+        dest: "{{ daemontools_svscan_dir }}/freshclam"
+        state: link
+      when: want_clamav_service
+
+  when:
+    - has_daemontools is defined and has_daemontools
+    - ansible_system != 'Linux'

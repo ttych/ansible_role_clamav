@@ -1,0 +1,79 @@
+---
+
+- block:
+    - name: set fs/inotify/max_user_watches
+      sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+        state: present
+        sysctl_set: yes
+        sysctl_file: "{{ sysctl_conf }}"
+      loop:
+        - { name: "fs.inotify.max_user_watches", value: "{{ clamav_sysctl_inotify_max_watches }}" }
+
+    - name: deploy clamonacc service
+      template:
+        src: clamav-onacc/clamav-onacc.service
+        dest: "{{ systemd_system_d }}/{{ clamav_on_access_service }}"
+        owner: root
+        group: "{{ root_group }}"
+        mode: "0644"
+      register: t_clamav_on_access_service
+
+    - name: reload systemd
+      systemd:
+        daemon_reload: yes
+      when:
+        - t_clamav_on_access_service.changed
+        - ansible_service_mgr == "systemd"
+
+    - name: enable/start clamonacc service
+      service:
+        name: "{{ clamav_on_access_service }}.service"
+        enabled: yes
+        state: started
+      register: t_clamav_on_access_start
+
+    - name: restart clamonacc on change
+      service:
+        name: "{{ clamav_on_access_service }}.service"
+        state: restarted
+      when: not t_clamav_on_access_start.changed and t_clamav_conf.changed
+
+  when:
+    - want_clamav_clamd_service
+    - want_clamav_on_access_service
+
+
+- block:
+    - name: unset fs/inotify/max_user_watches
+      sysctl:
+        name: "{{ item }}"
+        state: absent
+        sysctl_set: yes
+        sysctl_file: "{{ sysctl_conf }}"
+      loop:
+        - fs.inotify.max_user_watches
+
+    - name: disable/stop clamonacc service
+      service:
+        name: "{{ clamav_on_access_service }}.service"
+        enabled: no
+        state: stopped
+      failed_when: no
+      register: t_clamav_on_access_start
+
+    - name: deploy clamonacc service
+      file:
+        path: "{{ systemd_system_d }}/{{ clamav_on_access_service }}"
+        state: absent
+      register: t_clamav_on_access_service
+
+    - name: reload systemd
+      systemd:
+        daemon_reload: yes
+      when:
+        - t_clamav_on_access_service.changed or t_clamav_on_access_start.changed
+        - ansible_service_mgr == "systemd"
+
+  when: not want_clamav_on_access_service

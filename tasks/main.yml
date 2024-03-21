@@ -4,10 +4,24 @@
 
     - include_tasks: install.yml
 
+    - include_tasks: quarantine.yml
+
     - include_tasks: configure.yml
+
+    - include_tasks: service.yml
+
+    - include_tasks: daemontools_service.yml
+
+    - include_tasks: schedule.yml
+
+    - include_tasks: on_access.yml
 
   when: want_clamav
 
 - name: set has_clamav
   set_fact:
     has_clamav: "{{ want_clamav }}"
+
+- name: set has_clamav_clamd
+  set_fact:
+    has_clamav_clamd: "{{ want_clamav_clamd_service }}"

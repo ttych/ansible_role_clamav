@@ -1,0 +1,78 @@
+---
+
+- name: FreeBSD specific
+  template:
+    src: newsyslog.conf.d/freshclam.conf
+    dest: "{{ newsyslog_conf_dir }}/freshclam.conf"
+    owner: root
+    group: "{{ root_group }}"
+    mode: '0644'
+  when: ansible_distribution == 'FreeBSD'
+
+
+- name: standard clamd service
+  block:
+    - name: enable FreeBSD clamd service
+      include_tasks: sysrc.yml
+      vars:
+        key: "{{ clamav_clamd_service | regex_replace('-','_')  }}_enable"
+        value: "{{ (want_clamav_clamd_service) | ternary('YES', 'NO') }}"
+      when: ansible_distribution == 'FreeBSD'
+
+    - name: enable Linux clamd service
+      service:
+        name: "{{ clamav_clamd_service }}"
+        enabled: "{{ (want_clamav_clamd_service) | ternary(true, false) }}"
+      when: ansible_system == 'Linux'
+
+    - name: start clamd service
+      service:
+        name: '{{ clamav_clamd_service }}'
+        state: "{{ (want_clamav_clamd_service) | ternary('started', 'stopped') }}"
+      register: t_clamav_service
+
+    - name: restart clamd service
+      service:
+        name: '{{ clamav_clamd_service }}'
+        enabled: yes
+        state: restarted
+      when:
+        - want_clamav_clamd_service
+        - t_clamav_conf.changed and not t_clamav_service.changed
+
+  when:
+    - ansible_system == 'Linux' or (has_daemontools is not defined or not has_daemontools)
+
+
+- name: standard freshclam service
+  block:
+    - name: enable FreeBSD freshclam service
+      include_tasks: sysrc.yml
+      vars:
+        key: "{{ clamav_freshclam_service | regex_replace('-','_')  }}_enable"
+        value: "{{ (want_clamav_freshclam_service) | ternary('YES', 'NO') }}"
+      when: ansible_distribution == 'FreeBSD'
+
+    - name: enable Linux freshclam service
+      service:
+        name: "{{ clamav_freshclam_service }}"
+        enabled: "{{ (want_clamav_freshclam_service) | ternary(true, false) }}"
+      when: ansible_system == 'Linux'
+
+    - name: start freshclam service
+      service:
+        name: '{{ clamav_freshclam_service }}'
+        state: "{{ (want_clamav_freshclam_service) | ternary('started', 'stopped') }}"
+      register: t_clamav_service
+
+    - name: restart freshclam service
+      service:
+        name: '{{ clamav_freshclam_service }}'
+        enabled: yes
+        state: restarted
+      when:
+        - want_clamav_freshclam_service
+        - t_clamav_conf.changed and not t_clamav_service.changed
+
+  when:
+    - ansible_system == 'Linux' or (has_daemontools is not defined or not has_daemontools)

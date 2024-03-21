@@ -1,23 +1,103 @@
 ---
-want_clamav: true
-want_clamav_service: true
 
-clamav_services:
-  - clamav-freshclam
-
-clamav_packages:
-  - clamav-daemon
+want_clamav: yes
+want_clamav_clamd_service: no
+want_clamav_freshclam_service: yes
+want_clamav_schedule_daily: yes
+want_clamav_on_access_service: no
+want_clamav_quarantine: yes
 
 clamav_user: clamav
+clamav_group: clamav
 
-freshclam_conf: /etc/freshclam.conf
-freshclam_log_file: /var/log/clamav/freshclam.log
-freshclam_pid_file: /var/run/clamav/freshclam.pid
+clamav_packages:
+  - clamav
 
-root_group: root
+clamav_clamd_service: clamav-daemon
+clamav_freshclam_service: clamav-freshclam
+clamav_on_access_service: clamav-onacc
+
+clamav_conf_dir: /etc/clamav
+clamav_log_dir: /var/log/clamav
+clamav_run_dir: /var/run/clamav
+clamav_clamav_db_dir: /var/lib/clamav
+clamav_clamd_conf: "{{ clamav_conf_dir }}/clamd.conf"
+clamav_clamav_log: "{{ clamav_log_dir }}/clamd.log"
+clamav_clamav_pid: "{{ clamav_run_dir }}/clamd.pid"
+clamav_freshclam_conf: "{{ clamav_conf_dir }}/freshclam.conf"
+clamav_freshclam_log: "{{ clamav_log_dir }}/freshclam.log"
+clamav_freshclam_pid: "{{ clamav_run_dir }}/freshclam.pid"
+clamav_clamd_socket: "{{ clamav_run_dir }}/clamd.ctl"
+
+
+clamav_workspace_items:
+  - path: "{{ clamav_conf_dir }}"
+    owner: root
+    group: "{{ root_group }}"
+    mode: "0755"
+  - path: "{{ clamav_log_dir }}"
+    owner: "{{ clamav_user }}"
+    group: "{{ clamav_group }}"
+    mode: "0755"
+  - path: "{{ clamav_clamav_db_dir }}"
+    owner: "{{ clamav_user }}"
+    group: "{{ clamav_group }}"
+    mode: "0755"
+  - path: "{{ clamav_run_dir }}"
+    owner: root
+    group: "{{ root_group }}"
+    ifsystems:
+      - FreeBSD
 
 service_dir: /service
 daemontools_dir: "{{ service_dir }}/svscan"
 daemontools_svscan_dir: "{{ daemontools_dir }}/supervised"
 
 freshclam_local_apparmor_file: /etc/apparmor.d/local/usr.bin.freshclam
+
+root_group: 0
+
+clamav_exclude_paths:
+  - "^/proc"
+  - "^/sys"
+  - "^/run"
+  - "^/dev"
+  - "^/snap"
+  - "^/var/lib/lxcfs/cgroup"
+  - "^/root"
+  - "^{{ clamav_quarantine }}"
+
+clamav_on_access_include_paths:
+  - /home
+  - /data
+
+clamav_clamdscanner_default_path: /home
+clamav_clamdscanner_opts:
+  - "--infected"
+  - "--remove"
+
+clamav_clamdscanner_dir: /usr/local/bin
+clamav_clamdscanner_clam_bin: "{{ clamav_clamdscanner_dir }}/clamscanner"
+clamav_clamdscanner_clamd_bin: "{{ clamav_clamdscanner_dir }}/clamdscanner"
+
+clamav_schedule_daily_label: clamav_scanner
+
+clamav_sysctl_inotify_max_watches: 40960
+
+clamav_quarantine: /data/QUARANTINE
+
+clamav_zfs_try: yes
+clamav_zfs_dataset_properties:
+  setuid: off
+  compression: "lz4"
+  sharenfs: off
+  sharesmb: off
+  atime: off
+  relatime: off
+
+
+
+
+cron_daily_d: /etc/cron.daily
+systemd_system_d: /etc/systemd/system
+sysctl_conf: /etc/sysctl.conf

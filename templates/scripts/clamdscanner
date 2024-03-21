@@ -1,0 +1,28 @@
+#!/bin/sh
+
+DEFAULT_PATH="{{ clamav_clamdscanner_default_path }}"
+
+logger -t {{ clamav_clamdscanner_cmd }} "start($$) $0 $@"
+
+if [ $# -eq 0 ]; then
+    case `id -u` in
+        0)
+            set -- $DEFAULT_PATH
+            ;;
+        *)
+            set -- "$HOME"
+            ;;
+    esac
+fi
+
+logger -t {{ clamav_clamdscanner_cmd }} "running($$) $0 $@"
+
+{{ clamav_clamdscanner_cmd }} \
+    {{ clamav_clamdscanner_opt1 }} \
+    {{ clamav_clamdscanner_opts | join(' ') }} \
+    {{ has_clamav_quarantine | ternary("--move=\"" + clamav_quarantine + "\"", "") }} \
+    "$@"
+
+logger -t {{ clamav_clamdscanner_cmd }} "end($$) $0 $@"
+
+exit 0

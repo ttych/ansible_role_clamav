@@ -1,0 +1,47 @@
+---
+
+- block:
+
+    - block:
+        - name: define quarantine parent
+          set_fact:
+            clamav_quarantine_parent: "{{ clamav_quarantine | dirname }}"
+            clamav_quarantine_name: "{{ clamav_quarantine | basename }}"
+
+        - name: "get associated dataset for {{ clamav_quarantine_parent }}"
+          shell: zfs list -H "{{ clamav_quarantine_parent }}" | awk '{print $1}'
+          register: t_clamav_quarantine_parent_dataset
+          changed_when: no
+
+        - block:
+            - name: "create dataset for {{ clamav_quarantine }}"
+              zfs:
+                name: "{{ t_clamav_quarantine_parent_dataset.stdout }}/{{ clamav_quarantine_name }}"
+                state: present
+                extra_zfs_properties: "{{ clamav_zfs_dataset_properties | combine({ 'mountpoint': clamav_quarantine }) }}"
+
+          when:
+            - t_clamav_quarantine_parent_dataset.rc == 0
+            - t_clamav_quarantine_parent_dataset.stdout != ""
+
+      when:
+        - clamav_zfs_try
+        - clamav_quarantine is defined
+        - clamav_quarantine != ""
+
+    - name: "prepare quarantine directory"
+      file:
+        path: "{{ clamav_quarantine }}"
+        owner: root
+        group: "{{ root_group }}"
+        mode: "1777"
+        state: directory
+
+  when:
+    - want_clamav_quarantine
+    - clamav_quarantine is defined
+    - clamav_quarantine != ""
+
+- name: set has_clamav_quarantine
+  set_fact:
+    has_clamav_quarantine: "{{ want_clamav_quarantine and (clamav_quarantine is defined) and (clamav_quarantine != '') }}"

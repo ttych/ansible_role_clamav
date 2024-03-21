@@ -1,0 +1,33 @@
+---
+
+- name: set clamav_schedule_daily_cmd
+  set_fact:
+    clamav_schedule_daily_cmd: clamdscanner
+  when:
+    - clamav_schedule_daily_cmd is not defined
+    - want_clamav_clamd_service
+
+- name: set clamav_schedule_daily_cmd
+  set_fact:
+    clamav_schedule_daily_cmd: clamscanner
+  when:
+    - clamav_schedule_daily_cmd is not defined
+    - not want_clamav_clamd_service
+
+
+- name: daily schedule for clamav_scanner
+  file:
+    src: "{{ clamav_clamdscanner_dir }}/{{ clamav_schedule_daily_cmd }}"
+    dest: "{{ cron_daily_d }}/{{ clamav_schedule_daily_label }}"
+    state: link
+    owner: root
+    group: "{{ root_group }}"
+  when: want_clamav_schedule_daily
+
+- name: clean daily schedule for clamav_scanner
+  file:
+    path: "{{ cron_daily_d }}/{{ clamav_schedule_daily_label }}"
+    state: absent
+    owner: root
+    group: "{{ root_group }}"
+  when: not want_clamav_schedule_daily

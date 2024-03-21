@@ -1,0 +1,13 @@
+---
+
+- name: setup workspace directory tree
+  file:
+    path: "{{ item.path | d(omit) }}"
+    src: "{{ item.src | d(omit) }}"
+    dest: "{{ item.dest | d(omit) }}"
+    owner: "{{ item.owner | d(omit) }}"
+    group: "{{ item.group | d(omit) }}"
+    mode: "{{ item.mode | d(omit) }}"
+    state: "{{ item.state|d('directory') }}"
+  loop: "{{ workspace_items }}"
+  when: item.ifsystems is not defined or ansible_system in item.ifsystems
