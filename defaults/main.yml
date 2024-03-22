@@ -3,7 +3,7 @@
 want_clamav: yes
 want_clamav_clamd_service: no
 want_clamav_freshclam_service: yes
-want_clamav_schedule_daily: yes
+want_clamav_schedule_daily: no
 want_clamav_on_access_service: no
 want_clamav_quarantine: yes
 
